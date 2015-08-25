@@ -5,7 +5,7 @@
 (def db
   {:classname "org.sqlite.JDBC"
    :subprotocol "sqlite"
-   :subname "db/database.db"})
+   :subname "users.db"})
 
 (def default-admin
   {:username "admin"
@@ -16,7 +16,7 @@
 (defn init-db
   "Creates an initial users database and inserts a default admin user"
   []
-  (when-not (.exists (clojure.java.io/file "db/database.db"))
+  (when-not (.exists (clojure.java.io/file "users.db"))
     (db-do-commands 
       db
       (create-table-ddl :users
