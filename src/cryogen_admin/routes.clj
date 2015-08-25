@@ -3,7 +3,7 @@
             [compojure.core :refer [GET PUT POST DELETE defroutes]]
             [buddy.hashers :as hashers]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
-            [cryogen.db :as db]
+            [cryogen-admin.db :as db]
             [cryogen-admin.views :as layout]))
 
 (defn login
@@ -30,7 +30,6 @@
       (response (layout/login errors))
       (let [next-url (get-in request [:query-params "next"] "/")
             updated-session (assoc session :identity (keyword username))]
-        (prn "success")
         (-> (redirect next-url)
             (assoc :session updated-session))))))
 
