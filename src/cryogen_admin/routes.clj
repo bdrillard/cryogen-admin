@@ -3,18 +3,48 @@
             [compojure.core :refer [GET PUT POST DELETE defroutes]]
             [buddy.hashers :as hashers]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
+            [cryogen-core.compiler :refer [read-config read-page-meta find-posts find-pages]]
+            [cryogen-core.markup :as m]
+            [clojure.java.io :refer [reader]]
             [cryogen-admin.db :as db]
             [cryogen-admin.views :as layout]))
+
+(defn parse-page-markup
+  [page config markup]
+  (with-open [rdr (java.io.PushbackReader. (reader page))]
+    (let [page-name (.getName page)
+          page-meta (read-page-meta page-name rdr)
+          content ((fn [rdr conf] (->> (java.io.BufferedReader. rdr)
+                                       (line-seq)
+                                       (clojure.string/join "\n"))) 
+                   rdr config)]
+      (merge {:file-name page-name
+              :content content}
+             page-meta))))
+
+(defn read-posts-markup
+  [config]
+  (->> (mapcat
+         (fn [mu]
+           (->>
+             (find-posts config mu)
+             (map #(parse-page-markup % config mu))))
+         (m/markups))
+       (sort-by :file-name)))
+
+(defn read-pages-markup
+  [config]
+  (->> (mapcat
+         (fn [mu]
+           (->>
+             (find-pages config mu)
+             (map #(parse-page-markup % config mu))))
+         (m/markups))
+       (sort-by :page-index)))
 
 (defn login
   [request]
   (layout/login))
-
-(defn home
-  [request]
-  (if-not (authenticated? request)
-    (throw-unauthorized)
-    (layout/home)))
 
 (defn login-authenticate
   [request]
@@ -37,6 +67,20 @@
   [request]
   (-> (redirect "/")
       (assoc :session {})))
+
+(defn home
+  [request]
+  (if-not (authenticated? request)
+    (throw-unauthorized)
+    (let [conf (read-config)
+          users (map #(select-keys % [:username :firstname :lastname :role])
+                     (db/get-users))
+          pages (read-pages-markup conf)
+          posts (read-posts-markup conf)]
+      (prn (read-posts-markup conf))
+      (prn (read-pages-markup conf))
+      (prn users)
+      (layout/home users pages posts))))
 
 (defroutes admin-routes
   (GET "/" [] login)

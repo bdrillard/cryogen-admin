@@ -47,9 +47,56 @@
            [:input.btn.btn-default {:type "submit"}]]]]]]]]))
 
 (defn home
-  []
+  [users pages posts]
   (html5
     (head "Admin")
     [:body
      navbar
-     [:p "Hello, world!"]]))
+     [:div.container.fluid
+      [:div.col-md-8.col-md-offset-2.col-sm-10.col-sm-offset-1
+       [:div.row
+        [:div.col-md-8
+         [:div.row
+          [:h2 "Users"]
+          [:table.table.table-hover
+           [:thead
+            [:tr
+             [:th "Username"]
+             [:th "Name"]
+             [:th "Role"]]]
+           [:tbody
+            (for [user users
+                  :let [{:keys [username firstname lastname role]} user]]
+              [:tr
+               [:td username]
+               [:td (clojure.string/join " " [firstname lastname])]
+               [:td role]])]]]
+         [:div.row
+          [:h2 "Pages"]
+          [:table.table.table-hover
+           [:thead
+            [:tr
+             [:th "Title"]]]
+           [:tbody
+            (for [page pages
+                  :let [{:keys [title file-name]} page]]
+              [:tr
+               [:td title]
+               [:td file-name]])]]]
+         [:div.row
+          [:h2 "Posts"]
+          [:table.table.table-hover
+           [:thead
+            [:tr
+             [:th "Title"]
+             [:th "Date"]
+             [:th "Tags"]]]
+           [:tbody
+            (for [post posts
+                  :let [{:keys [title date tags file-name]} post]]
+              [:tr
+               [:td title]
+               [:td date]
+               [:td (clojure.string/join ", " tags)]
+               [:td file-name]])]]]
+          ]]]]]))
