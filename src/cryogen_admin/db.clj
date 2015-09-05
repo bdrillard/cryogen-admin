@@ -11,7 +11,8 @@
   {:username "admin"
    :password "password"
    :firstname "foo"
-   :lastname "bar"})
+   :lastname "bar"
+   :role "admin"})
 
 (defn init-db
   "Creates an initial users database and inserts a default admin user"
@@ -23,7 +24,8 @@
                         [:username :text "PRIMARY KEY"]
                         [:password :text]
                         [:firstname :text]
-                        [:lastname :text]))
+                        [:lastname :text]
+                        [:role :text]))
     (insert! db :users (assoc default-admin
                               :password
                               (hashers/encrypt (:password default-admin))))))
@@ -33,6 +35,11 @@
   [username]
   (-> (query db ["SELECT * FROM users WHERE username = ?" username])
       first))
+
+(defn get-users
+  "Returns a list of user maps"
+  []
+  (query db ["SELECT * FROM users"]))
 
 (defn create-user
   "Given a map of user attributes, inserts a new user with hashed password"
