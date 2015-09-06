@@ -1,6 +1,6 @@
 (ns cryogen-admin.routes
   (:require [ring.util.response :refer [redirect response]]
-            [compojure.core :refer [GET PUT POST DELETE defroutes]]
+            [compojure.core :refer [GET PUT POST DELETE defroutes context]]
             [buddy.hashers :as hashers]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [cryogen-core.compiler :refer [read-config read-page-meta find-posts find-pages]]
@@ -82,9 +82,40 @@
       (prn users)
       (layout/home users pages posts))))
 
+(defn get-user
+  [request]
+  (if-not (authenticated? request)
+    (throw-unauthorized)
+    (let [username (get-in request [:params :username])
+          user (db/get-user username)]
+    (layout/user user))))
+
+(defn new-user
+  [request]
+  (if-not (authenticated? request)
+    (throw-unauthorized)
+    nil))
+
+(defn update-user
+  [request]
+  (if-not (authenticated? request)
+    (throw-unauthorized)
+    nil))
+
+(defn delete-user
+  [request]
+  (if-not (authenticated? request)
+    (throw-unauthorized)
+    nil))
+
 (defroutes admin-routes
   (GET "/" [] login)
   (POST "/" [] login-authenticate)
   (GET "/logout" [] logout)
 
-  (GET "/home" [] home))
+  (GET "/home" [] home)
+  (context "/user" []
+    (GET "/:username" [] get-user)
+    (POST "/" [] new-user)
+    (PUT "/" [] update-user)
+    (DELETE "/:username" [] delete-user)))
